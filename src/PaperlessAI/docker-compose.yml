@@ -1,0 +1,60 @@
+version: '3.4'
+
+services:
+  paperlessai.api:
+    image: ${DOCKER_REGISTRY-}paperlessaiapi
+    build:
+      context: .
+      dockerfile: PaperlessAI.API/Dockerfile
+    environment:
+      ASPNETCORE_HTTP_PORTS: 8080
+      POSTGRES_CONNECTION_STRING: Host=postgres;Port=5432;Database=PaperlessAI;Username=postgres;Password=Pwv*4cCqB
+      RABBITMQ_HOST_NAME: rabbitmq
+    ports:
+      - 9081:8080
+    depends_on:
+      - rabbitmq
+      - postgres
+ 
+  paperlessai.filestore:
+    image: ${DOCKER_REGISTRY-}paperlessaifilestore
+    build:
+      context: .
+      dockerfile: PaperlessAI.FileStore/Dockerfile
+    volumes:
+      - filestore_data:/home/app/filestore
+    environment:
+      ASPNETCORE_HTTP_PORTS: 8080
+      RABBITMQ_HOST_NAME: rabbitmq
+    ports:
+      - 9082:8080
+    depends_on:
+      - rabbitmq
+      - postgres
+
+  postgres:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: Pwv*4cCqB
+  
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9080:8080
+   
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+
+volumes:
+  postgres_data:
+  filestore_data:

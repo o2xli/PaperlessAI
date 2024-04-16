@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "paperlessai.api": "StartWithoutDebugging",
+        "adminer": "StartWithoutDebugging",
+        "postgres": "StartWithoutDebugging",
+        "rabbitmq": "StartWithoutDebugging",
+        "paperlessai.filestore": "StartWithoutDebugging"
+      }
+    }
+  }
+}
