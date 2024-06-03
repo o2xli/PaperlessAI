@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Marten" Version="7.8.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="2.5.0" />
+    <PackageReference Include="PdfPig" Version="0.1.8" />
+    <PackageReference Include="NJsonSchema" Version="10.9.0" />
+	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PaperlessAI.Contracts\PaperlessAI.Contracts.csproj" />
+    <ProjectReference Include="..\PaperlessAI.Shared\PaperlessAI.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="deu.traineddata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,39 @@
+# This is a generated file. Not intended for manual editing.
+version: "3.4"
+services:
+  paperlessai.api:
+    build:
+      context: "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI"
+      dockerfile: "PaperlessAI.API/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net8.0/PaperlessAI.API.dll"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "paperlessaiapi:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\olive\\.nuget\\packages:/root/.nuget/packages"
+    - "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI\\PaperlessAI.API:/app:rw"
+    - "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI:/src:rw"
+    working_dir: "/app"
+  paperlessai.filestore:
+    build:
+      context: "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI"
+      dockerfile: "PaperlessAI.FileStore/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net8.0/PaperlessAI.FileStore.dll"
+    environment:
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+    image: "paperlessaifilestore:dev"
+    ports: []
+    volumes:
+    - "C:\\Users\\olive\\.nuget\\packages:/root/.nuget/packages"
+    - "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI\\PaperlessAI.FileStore:/app:rw"
+    - "C:\\work\\GitHub\\BlazingIdeas\\PaperlessAI\\src\\PaperlessAI:/src:rw"
+    working_dir: "/app"
