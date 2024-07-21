@@ -1,17 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using static PaperlessAI.Contracts.AiSchemas;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PaperlessAI.Contracts;
 
 public class Data
 {
+    public enum DocumentStatus
+    {
+        Inbox,
+        ProcessedOcr,
+        ProcessedAi,
+        Processed,
+        ErrorAi,
+        ErrorOcr,
+        Error
+    }
+
     public record Document
     {
         public Guid Id { get; set; }
@@ -19,8 +22,15 @@ public class Data
         public string? OriginalFileName { get; set; }
         public string FileNameHash { get; set; }
         public string Content { get; set; }
+        
+        public int WordCount { get; set; }
         public DocumentStatus Status { get; set; }
         public MetaData? MetaData { get; set; }
+        
+        public string Title
+        {
+            get => string.IsNullOrWhiteSpace(FileName) ? Id.ToString() : FileName;
+        }
     }
 
     public record MetaData
@@ -30,22 +40,13 @@ public class Data
         public string[]? Keywords { get; set; }
         public DateTime? CreationDate { get; set; }
         public string? IBAN { get; set; }
-        [Required]
-        public string? BIC { get; set; }
+
+        [Required] public string? BIC { get; set; }
+
         public string DocumentType { get; set; }
         public string[]? OrderItems { get; set; }
-        public Decimal? TotalAmount { get; set; }
+        public decimal? TotalAmount { get; set; }
         public string? Currency { get; set; }
         public string[]? Persons { get; set; }
     }
-
-    public enum DocumentStatus
-    {
-        Inbox,
-        ProcessedOcr,
-        ProcessedAi,
-        Processed,
-        Error
-    }
-
 }

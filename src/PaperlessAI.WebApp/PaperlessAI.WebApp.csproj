@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MudBlazor" Version="6.20.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PaperlessAI.Contracts\PaperlessAI.Contracts.csproj" />
+      <ProjectReference Include="..\PaperlessAI.Shared\PaperlessAI.Shared.csproj" />
+    </ItemGroup>
+
+</Project>

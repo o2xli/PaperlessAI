@@ -1,0 +1,13 @@
+﻿<MudDialog>
+    <DialogContent>
+        Dialog Content
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Guid DocumentId { get; set; }
+    
+
+}

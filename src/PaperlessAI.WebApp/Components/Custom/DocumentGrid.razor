@@ -1,0 +1,34 @@
+﻿@inject HttpClient httpClient
+@inject IDialogService Dialog
+
+<MudDataGrid Items="@Elements">
+    <Columns>
+        @* <PropertyColumn Property="x => x.Id"  /> *@
+        <TemplateColumn CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudButton Size="@Size.Small" Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@((e) => OpenDialog(context.Item.Id, context.Item.Title))">Show</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Title"/>
+        <PropertyColumn Property="x => x.MetaData.CreationDate"/>
+        <PropertyColumn Property="x => x.MetaData.DocumentType"/>
+        <PropertyColumn Property="x => x.Status"/>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private IEnumerable<Data.Document> Elements = new List<Data.Document>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Elements = await httpClient.GetFromJsonAsync<List<Data.Document>>("document");
+    }
+
+    private void OpenDialog(Guid id,string title)
+    {
+        var parameters = new DialogParameters<DocumentDialog>();
+        parameters.Add(x => x.DocumentId, id);
+        Dialog.Show<DocumentDialog>(title, parameters,new DialogOptions() { FullScreen = true, CloseButton = true });
+    }
+
+}

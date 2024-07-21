@@ -1,4 +1,3 @@
-
 services:
   # paperlessai.api:
   #   image: ${DOCKER_REGISTRY-}paperlessaiapi
@@ -14,7 +13,7 @@ services:
   #   depends_on:
   #     - rabbitmq
   #     - postgres
- 
+  
   # paperlessai.filestore:
   #   hostname: filestore
   #   image: ${DOCKER_REGISTRY-}paperlessaifilestore
@@ -48,7 +47,7 @@ services:
     restart: always
     ports:
       - 9080:8080
-   
+  
   rabbitmq:
     image: rabbitmq:3-management
     restart: always
