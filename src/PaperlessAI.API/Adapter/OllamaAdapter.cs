@@ -1,23 +1,36 @@
-﻿using Newtonsoft.Json;
-using NJsonSchema;
-using NJsonSchema.Validation;
-using PaperlessAI.Shared;
+﻿using System.Text.Json;
+using OllamaSharp;
+using OllamaSharp.Models.Chat;
+using PaperlessAI.Contracts;
 
 namespace PaperlessAI.API.Adapter;
 
-public class OllamaAdapter<T> : IAiAdapter<T>
+public class OllamaAdapter : IAiAdapter
 {
-    private readonly string assistantMessageTemplate;
     private readonly IHttpClientFactory httpClientFactory;
-    private readonly string model;
+    
     private readonly int seed;
     private readonly float temperature;
     private readonly float topP;
+    private readonly string systemMessage = $$"""
+             # IDENTITÄT und ZWECK
+          
+             Sie sind Experte für Dokumentenklassifizierung, auch Textklassifikation genannt, d.h. Sie erfassen und anylysieren 
+             die in den verschiedenen Dokumenten enthaltenen Informationen automatisch und geben diese in den vordefinierten Kategorien aus.
+          
+             # EINGABE
+          
+             Der Benutzer wird ihnen als Eingabe  einen unstrukturierten Text geben, welcher mit OCR-Technologie aus einem gescannten Dokument extrahiert wurde.
+          
+             # AUSGABE ANWEISUNGEN
+          
+             - Geben Sie keine Warnungen oder Hinweise aus, sondern nur die gewünschten Abschnitte.
+             - Geben Sie keine zusätzlichen Informationen aus.
 
+          """;
     public OllamaAdapter(IHttpClientFactory httpClientFactory, string model, float temperature, float topP, int seed)
     {
         this.httpClientFactory = httpClientFactory;
-        this.model = model;
         this.temperature = temperature;
         this.topP = topP;
         this.seed = seed;
@@ -26,146 +39,109 @@ public class OllamaAdapter<T> : IAiAdapter<T>
     public float? Temperature => temperature;
 
 
-    public async Task<T> Call(string userInput)
+    public async Task<AiSchemas.DocumentMetaData> Call(string userInput)
     {
-        var resultContent = await CallBase(userInput);
-
-        var result = JsonConvert.DeserializeObject<T>(resultContent);
-
+        var dict = await CallBase(userInput);
+        if (dict is null)
+            return null;
+        
+        var result = new AiSchemas.DocumentMetaData()
+        {
+            Correspondents = dict.AsArray("Correspondents"),
+            DocumentType = dict.AsString("DocumentType"),
+            Currency = dict.AsString("Currency"),
+            TotalAmount = dict.AsString("TotalAmount"),
+            CreationDate = dict.AsDateTime("CreationDate"),
+            IBAN = dict.AsString("IBAN"),
+            BIC = dict.AsString("BIC"),
+            Keywords = dict.AsArray("Keywords"),
+            Persons = dict.AsArray("Persons"),
+            Subject = dict.AsString("Subject"),
+            FileName = dict.AsString("FileName"),
+        };
+        
         return result;
     }
 
-    public async Task<string> CallRaw(string userInput, string jsonSchema)
+    private async Task<Dictionary<string,string>?> CallBase(string userInput)
     {
-        var systemMessage = $$"""
-                              Sie sind ein Dienst, der Benutzer anfragen zu einem eingescannten Dokument im JSON Format des Typs "{{typeof(T).Name}}" gemäß den folgenden JSON-Schemadefinitionen übersetzt:
-                              ```    
-                                  {{jsonSchema}}
-                              ```
+        var uri = new Uri("http://localhost:11434");
+        var ollama = new OllamaApiClient(uri);
 
-                              Ihre Aufgabe ist es, Metadaten aus dem Text eines gescannten Dokuments zu extrahieren.
-                              """;
-
-        var userMessage = $$"""
-                            Erkenne in dem folgenden Text die felder aus JSON-Schemadefinitionen und erstelle passend dazu ein JSON Object :
-
-
-                            \"{{userInput}}\"                        
-                            """;
-
-        var resultContent = await CallAPI(systemMessage, userMessage);
-
-        return resultContent;
+        var request = CreateModelRequest(userInput, "llama3.1:70b");
+        var json = JsonSerializer.Serialize(request);
+        var response = await ollama.Chat(request).StreamToEnd();
+        var arguments = response?.Message.ToolCalls?.FirstOrDefault()?.Function?.Arguments;
+        //if (arguments is null)
+        //{
+        //    response = await ollama.Chat(CreateModelRequest(userInput, "firefunction-v2"));
+        //    arguments = response?.Message.ToolCalls?.FirstOrDefault()?.Function?.Arguments;
+        //}
+        return arguments;
     }
-
-
-    private async Task<string> TryFixJsonErrors(string jsonData, string jsonSchema, string[] errors)
+    
+    private ChatRequest CreateModelRequest(string userInput, string model)
     {
-        var systemMessage = $$"""
-                              Sie sind ein Dienst, welcher fehlerhafte JSON Daten korrigiert. Als referenz dient das JSON-Schema:
-                              ```    
-                                  {{jsonSchema}}
-                              ```                
-                              """;
-
-        var userMessage = $$"""
-                            Die JSON-Daten enhalten die Fehler:
-                            \"{{string.Join(", ", errors)}}\"
-                            Bitte korrigieren Sie die JSON-Daten:
-                            \"{{jsonData}}\"                        
-                            """;
-
-        var resultContent = await CallAPI(systemMessage, userMessage);
-
-        return resultContent;
-    }
-
-    protected async Task<string> CallAPI(string systemMessage, string userMessage)
-    {
-        var httpClient = httpClientFactory.CreateClient("Ollama");
-
-        OllamaRequest request = new(model, new Message[]
+       var request = new ChatRequest
+       {
+            Model = model,
+            Format = "json",
+            Stream = false,
+            Options = new()
             {
-                new("system", systemMessage),
-                //new Message("assistant", assistantMessage),
-                new("user", userMessage)
+                Temperature = temperature,
+                Seed = 101,
+                TopP = 0.5f,
             },
-            new Options(seed, temperature, topP));
+            
+            Messages = new List<Message>()
+            {
+                new()
+                {
+                    Role = ChatRole.System,
+                    Content = systemMessage,
+                },
+                new()
+                {
+                    Role = ChatRole.User,
+                    Content = userInput,
+                },
+            },
+            Tools = new List<Tool>()
+            {
+                new()
+                {
+                    Type = "function",
+                    Function = new()
+                    {
+                        Name = "extract-meta-data",
+                        Description = "Extrahiert Metadaten aus dem Text eines gescannten Dokuments.",
+                        Parameters = new()
+                        {
+                           Type = "object",
+                           Properties = new Dictionary<string, Properties>
+                           {
+                                {"Correspondents",  new() {Type = "string",Description = "Die Personen, Institutionen oder Firmen, von der ein Dokument stammt oder an die es gesendet wird. Mehrere Ergebnisse sind durch Komma getrennt."}},
+                                {"Subject", new() {Type = "string", Description = "Das Subject eines Dokuments bezieht sich auf die Fragen, die das Dokument für die Nutzer beantworten kann."}},
+                                {"FileName", new() {Type = "string", Description = "Als Kurzname besed auf dem Subject, um es als Dateiname ohne Dateityp-Erweiterung zu verwenden. Der Dateiname sollte mit dem aktuellen Datum beginnen, um ihn eindeutig zu machen. Verwenden Sie das folgende Datums-Zeit-Format: yyyyMMddHHmm."}},
+                                {"Keywords", new() {Type = "string", Description = "Keywords sind themenbezogene Schlüsselwörter, die den wesentlichen Inhalt einer Aussage beschreiben. Sie liefern die für die Suche notwendigen Informationen. Mehrere Ergebnisse sind durch Komma getrennt."}},
+                                {"CreationDate", new() {Type = "string", Description = "Ein Erstellungsdatum des Dokuments im ISO 8601-Format. Falls nicht gefunden, leer lassen."}},
+                                {"IBAN", new() {Type = "string"}},
+                                {"BIC", new() {Type = "string"}},
+                                {"TotalAmount", new() {Type = "string"}},
+                                {"Currency", new () {Type = "string"}},
+                                {"Persons", new() {Type = "string", Description = "Eine Liste von Personen welche in den Dokument gefunden wurden. Mehrere Ergebnisse sind durch Komma getrennt."}},
+                                {"DocumentType", new Properties{Type="string", Description = "Der Dokumententyp ist eine Kategorie, in die Dokumente basierend auf ihrem Inhalt, ihrer Funktion und ihrem Verwendungszweck eingeordnet werden.",Enum = ["Bankdokument","Steuer","Vertrag","Rechnung","Bescheinigung","Rente", "Wahl", "Brief", "Arztbericht","Zeugniss","Mahnung","Zahlungserinnerung","Versicherung","Kontoauszug","Mietvertrag","Handyvertrag", "Kreditkartenabrechnungen","Gehaltsabrechnung", "Finanzdokument"] } }
+                           },
+                           Required = new List<string> { "Correspondents", "Subject", "FileName", "Keywords", "CreationDate", "IBAN", "BIC", "TotalAmount", "Currency", "Persons" }
+                       }
+                    }
+                },
+            },
+            
+        };
 
-        var combo = systemMessage + userMessage;
+        return request;
 
-        var responseMessage = await httpClient.PostAsJsonAsync("/api/chat", request);
-
-        var chatResult = await responseMessage.Content.ReadFromJsonAsync<OllamaResponse>();
-
-        var resultMessage = chatResult.message;
-
-        var resultContent = ExtractJsonCodeMarkDown(resultMessage.content);
-
-        return resultContent;
     }
-
-
-    protected static string[] GetJsonValidationErrors(JsonSchema jsonSchema, string resultContent)
-    {
-        return jsonSchema.Validate(resultContent)
-            .Where(e => e.Kind != ValidationErrorKind.StringTooShort &&
-                        e.Kind != ValidationErrorKind.NumberExpected &&
-                        e.Kind != ValidationErrorKind.PropertyRequired)
-            .Select(e => e.ToString())
-            .ToArray();
-    }
-
-    protected async Task<string> CallBase(string userInput)
-    {
-        var jsonSchema = JsonSchema.FromType(typeof(T));
-
-        var resultContent = await CallRaw(userInput, jsonSchema.ToReducedJson());
-
-        resultContent = ExtractJsonCodeMarkDown(resultContent);
-
-        var errors = GetJsonValidationErrors(jsonSchema, resultContent);
-
-        if (errors.Any()) resultContent = await TryFixJsonErrors(resultContent, jsonSchema.ToReducedJson(), errors);
-
-        return resultContent;
-    }
-
-    protected static string ExtractJsonCodeMarkDown(string input)
-    {
-        var result = input;
-        if (result.Contains("```json"))
-        {
-            var startTag = "```json";
-            var endTag = "```";
-            var startIndex = result.IndexOf(startTag) + startTag.Length;
-            var endIndex = result.IndexOf(endTag, startIndex);
-            result = result.Substring(startIndex, endIndex - startIndex);
-        }
-
-        return result.Trim('\n');
-    }
-
-    private record OllamaRequest(
-        string model,
-        Message[] messages,
-        Options options,
-        bool stream = false,
-        string format = "json");
-
-    private record OllamaResponse(
-        string model,
-        string created_at,
-        Message message,
-        bool done,
-        long otal_duration,
-        long load_duration,
-        int prompt_eval_count,
-        long prompt_eval_duration,
-        long eval_count,
-        long eval_duration);
-
-    private record Message(string role, string content);
-
-    private record Options(int seed, float temperature, float top_p);
 }

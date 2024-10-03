@@ -83,10 +83,10 @@ if (app.Environment.IsDevelopment())
 }
 
 
-/*app.Services.UseScheduler(scheduler =>
-{
-    scheduler.Schedule<ReScheduleAiTask>().EverySecond().PreventOverlapping(nameof(ReScheduleAiTask));
-});*/
+//app.Services.UseScheduler(scheduler =>
+//{
+//    scheduler.Schedule<ReScheduleAiTask>().EverySecond().PreventOverlapping(nameof(ReScheduleAiTask));
+//});
 
 
 app.MapGet("/document", async (IDocumentStore store) =>

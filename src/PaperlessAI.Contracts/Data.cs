@@ -40,12 +40,10 @@ public class Data
         public string[]? Keywords { get; set; }
         public DateTime? CreationDate { get; set; }
         public string? IBAN { get; set; }
-
-        [Required] public string? BIC { get; set; }
-
-        public string DocumentType { get; set; }
+        public string? BIC { get; set; }
+        public string? DocumentType { get; set; }
         public string[]? OrderItems { get; set; }
-        public decimal? TotalAmount { get; set; }
+        public string? TotalAmount { get; set; }
         public string? Currency { get; set; }
         public string[]? Persons { get; set; }
     }

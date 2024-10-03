@@ -18,7 +18,7 @@ public class ReScheduleAiTask : IInvocable
     public async Task Invoke()
     {
         var session = this.store.LightweightSession();
-        var inboxDocuments =  session.Query<Data.Document>()/*.Where(e => e.Status == Data.DocumentStatus.Inbox)*/.ToList();
+        var inboxDocuments =  session.Query<Data.Document>().Where(e => e.Status == Data.DocumentStatus.ErrorAi).ToList();
         foreach (var document in inboxDocuments)
         {
             await messageBus.PublishAsync(new Events.InboxProcessedOcr(document.Id));

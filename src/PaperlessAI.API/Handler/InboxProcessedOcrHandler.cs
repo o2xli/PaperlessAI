@@ -29,15 +29,16 @@ public class InboxProcessedOcrHandler
                 document.FileName = metaDatas.FileName;
                 document.MetaData = new Data.MetaData
                 {
-                    BIC = metaDatas.BIC?.FirstOrDefault(),
-                    IBAN = metaDatas.IBAN?.FirstOrDefault(),
+                    BIC = metaDatas.BIC,
+                    IBAN = metaDatas.IBAN,
                     CreationDate = metaDatas.CreationDate,
                     Currency = metaDatas.Currency,
                     DocumentType = metaDatas.DocumentType,
                     Keywords = metaDatas.Keywords,
-                    OrderItems = metaDatas.OrderItems,
                     Persons = metaDatas.Persons,
-                    TotalAmount = metaDatas.TotalAmount
+                    TotalAmount = metaDatas.TotalAmount,
+                    Subject = metaDatas.Subject,
+                    Correspondents = metaDatas.Correspondents
                 };
                 document.Status = Data.DocumentStatus.ProcessedAi;
                 session.Update(document);

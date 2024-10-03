@@ -1,12 +1,16 @@
-﻿using PaperlessAI.API.Adapter;
+﻿using OllamaSharp.Models;
+using PaperlessAI.API.Adapter;
 using PaperlessAI.Contracts;
 
 namespace PaperlessAI.API.Services;
 
-public class AiService : OllamaAdapter<AiSchemas.DocumentMetaData>
+public class AiService : OllamaAdapter
 {
     public AiService(IHttpClientFactory httpClientFactory, ILogger<AiService> logger) : base(httpClientFactory,
-        "llama3:8b", 0.8f, 0.5f, 101)
+        model: "llama3.1:8b",
+        temperature: 1f,
+        topP: 0.5f, 
+        seed: 101)
     {
         Logger = logger;
     }

@@ -54,7 +54,19 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-
+        
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - 8282:80
+      - 8484:443
+    environment:
+      PGADMIN_DEFAULT_PASSWORD: changeit
+      PGADMIN_DISABLE_POSTFIX: true
+      PGADMIN_DEFAULT_EMAIL: info@35b.de
+      PGADMIN_LISTEN_ADDRESS: 0.0.0.0
+      PGADMIN_LISTEN_PORT: 443
 
 volumes:
   postgres_data:

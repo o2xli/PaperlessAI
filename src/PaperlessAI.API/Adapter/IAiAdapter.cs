@@ -1,7 +1,9 @@
-﻿namespace PaperlessAI.API.Adapter;
+﻿using PaperlessAI.Contracts;
 
-public interface IAiAdapter<T>
+namespace PaperlessAI.API.Adapter;
+
+public interface IAiAdapter
 {
     float? Temperature { get; }
-    Task<T> Call(string userInput);
+    Task<AiSchemas.DocumentMetaData> Call(string userInput);
 }

@@ -7,20 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Coravel" Version="5.0.3" />
-        <PackageReference Include="Marten" Version="7.8.0"/>
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
-        <PackageReference Include="Tesseract" Version="5.2.0"/>
-        <PackageReference Include="WolverineFx.RabbitMQ" Version="2.5.0"/>
-        <PackageReference Include="PdfPig" Version="0.1.8"/>
-        <PackageReference Include="NJsonSchema" Version="10.9.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4"/>
+        <PackageReference Include="Coravel" Version="6.0.0" />
+        <PackageReference Include="Marten" Version="7.29.0" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+        <PackageReference Include="OllamaSharp" Version="3.0.8" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.8.1" />
+        <PackageReference Include="Tesseract" Version="5.2.0" />
+        <PackageReference Include="WolverineFx.RabbitMQ" Version="2.17.2" />
+        <PackageReference Include="PdfPig" Version="0.1.8" />
+        <PackageReference Include="NJsonSchema" Version="11.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\PaperlessAI.Contracts\PaperlessAI.Contracts.csproj"/>
-        <ProjectReference Include="..\PaperlessAI.Shared\PaperlessAI.Shared.csproj"/>
+        <ProjectReference Include="..\PaperlessAI.Contracts\PaperlessAI.Contracts.csproj" />
+        <ProjectReference Include="..\PaperlessAI.Shared\PaperlessAI.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
